@@ -1,0 +1,12 @@
+# Firefox Proxy Toggle Bookmarks
+# Create these bookmarks for one-click proxy control:
+
+# Bookmark 1 - Enable Proxy:
+Name: 🇧🇷 Brazil Proxy ON
+URL: about:preferences#general
+
+# Bookmark 2 - Check IP:
+Name: 🔍 Check My IP
+URL: https://whatismyipaddress.com
+
+# Note: FoxyProxy extension is still the most convenient option

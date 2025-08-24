@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# 🇧🇷 Brazil SSH Tunnel - Main Entry Point
+# Auto-detect project directory from app location
+
+# Get project directory (app is in project root)
+APP_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+PROJECT_DIR="$(dirname "$(dirname "$(dirname "$APP_DIR")")")"
+
+# Open Terminal and start tunnel management
+osascript << APPLESCRIPT
+tell application "Terminal"
+    activate
+    do script "echo '🇧🇷 Welcome to Brazil SSH Tunnel!' && echo 'Starting tunnel management...' && cd '$PROJECT_DIR' && ./tools/start"
+    set custom title of front tab of front window to "🇧🇷 Brazil SSH Tunnel"
+end tell
+APPLESCRIPT
