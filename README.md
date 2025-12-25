@@ -62,14 +62,22 @@ Creates a secure SSH tunnel (SOCKS5 proxy) from your device to a Brazilian Azure
 
 ## Manual Configuration
 
-If you prefer to edit `config.env` manually:
+Copy the sample configuration and update with your values:
 
 ```bash
-VM_IP="74.163.64.57"              # Your Azure VM public IP
-SSH_USER="azureuser"              # SSH username
+cp config.env.sample config.env
+```
+
+Then edit `config.env` with your details:
+
+```bash
+VM_IP="your.vm.ip.address"        # Your Azure VM public IP
+SSH_USER="your_ssh_username"      # SSH username
 SSH_KEY="~/.ssh/your_key.rsa"     # Path to your SSH private key
 LOCAL_PORT="8080"                 # Local SOCKS proxy port
 ```
+
+**⚠️ Important**: Never commit your `config.env` file with real credentials to Git!
 
 ## Tools & Setup
 
@@ -91,7 +99,7 @@ LOCAL_PORT="8080"                 # Local SOCKS proxy port
 ```
 brazil-ssh-tunnel/
 ├── 🇧🇷 Brazil SSH Tunnel.app   # 🎯 Main entry point (just double-click!)
-├── config.env                   # Configuration file (auto-created)
+├── config.env.sample            # Configuration template (copy to config.env)
 ├── scripts/
 │   ├── ssh_tunnel.sh            # Main tunnel script
 │   ├── test_proxy.sh            # Connection tester

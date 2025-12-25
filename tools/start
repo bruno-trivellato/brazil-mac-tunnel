@@ -166,8 +166,31 @@ interactive_menu() {
 # Check if config file exists and is valid
 check_config() {
     if [[ ! -f "$CONFIG_FILE" ]]; then
-        print_error "config.env not found!"
-        return 1
+        # Check if sample config exists
+        if [[ -f "$PROJECT_DIR/config.env.sample" ]]; then
+            print_step "Creating config.env from sample..."
+            cp "$PROJECT_DIR/config.env.sample" "$CONFIG_FILE"
+            print_success "config.env created from sample template!"
+            print_warning "Please edit config.env with your actual Azure VM details."
+            
+            # Open config file for editing if possible
+            if command -v code >/dev/null 2>&1; then
+                print_step "Opening config.env in VS Code for editing..."
+                code "$CONFIG_FILE"
+            elif command -v nano >/dev/null 2>&1; then
+                print_step "Opening config.env in nano for editing..."
+                nano "$CONFIG_FILE"
+            else
+                print_step "Opening config.env in default editor..."
+                open "$CONFIG_FILE"
+            fi
+            
+            echo -e "\n${YELLOW}After editing the config file, run './tools/start' again.${NC}"
+            return 1
+        else
+            print_error "config.env not found and no sample template available!"
+            return 1
+        fi
     fi
     
     source "$CONFIG_FILE"
@@ -303,17 +326,40 @@ run_setup_wizard() {
     # Help user configure config.env
     print_step "Let's configure your config.env file..."
     
-    read -p "$(echo -e "${YELLOW}Enter your Azure VM IP address: ${NC}")" vm_ip
-    read -p "$(echo -e "${YELLOW}Enter SSH username (usually 'azureuser'): ${NC}")" ssh_user
-    read -p "$(echo -e "${YELLOW}Enter path to your SSH private key: ${NC}")" ssh_key
-    read -p "$(echo -e "${YELLOW}Enter local port for SOCKS proxy (8080): ${NC}")" local_port
-    
-    # Set defaults
-    ssh_user=${ssh_user:-azureuser}
-    local_port=${local_port:-8080}
-    
-    # Create config file
-    cat > "$CONFIG_FILE" << EOF
+    # Create config from sample if it exists, otherwise ask for details
+    if [[ -f "$PROJECT_DIR/config.env.sample" ]]; then
+        print_step "Copying sample config to config.env..."
+        cp "$PROJECT_DIR/config.env.sample" "$CONFIG_FILE"
+        print_success "config.env created from sample template!"
+        
+        print_step "Now let's fill in your Azure VM details..."
+        read -p "$(echo -e "${YELLOW}Enter your Azure VM IP address: ${NC}")" vm_ip
+        read -p "$(echo -e "${YELLOW}Enter SSH username (usually 'azureuser'): ${NC}")" ssh_user
+        read -p "$(echo -e "${YELLOW}Enter path to your SSH private key: ${NC}")" ssh_key
+        read -p "$(echo -e "${YELLOW}Enter local port for SOCKS proxy (8080): ${NC}")" local_port
+        
+        # Set defaults
+        ssh_user=${ssh_user:-azureuser}
+        local_port=${local_port:-8080}
+        
+        # Update the sample config with real values
+        sed -i '' "s/your\.vm\.ip\.address/$vm_ip/g" "$CONFIG_FILE"
+        sed -i '' "s/your_ssh_username/$ssh_user/g" "$CONFIG_FILE"
+        sed -i '' "s/~\/\.ssh\/your_ssh_key/${ssh_key//\//\\\/}/g" "$CONFIG_FILE"
+        sed -i '' "s/8080/$local_port/g" "$CONFIG_FILE"
+    else
+        # Fallback to manual creation if no sample exists
+        read -p "$(echo -e "${YELLOW}Enter your Azure VM IP address: ${NC}")" vm_ip
+        read -p "$(echo -e "${YELLOW}Enter SSH username (usually 'azureuser'): ${NC}")" ssh_user
+        read -p "$(echo -e "${YELLOW}Enter path to your SSH private key: ${NC}")" ssh_key
+        read -p "$(echo -e "${YELLOW}Enter local port for SOCKS proxy (8080): ${NC}")" local_port
+        
+        # Set defaults
+        ssh_user=${ssh_user:-azureuser}
+        local_port=${local_port:-8080}
+        
+        # Create config file manually
+        cat > "$CONFIG_FILE" << EOF
 # Brazil SSH Tunnel Configuration
 # 🇧🇷 Configure your Brazil VM connection details here
 
@@ -331,6 +377,7 @@ SSH_OPTIONS="-4 -C -N -o ServerAliveInterval=30 -o ServerAliveCountMax=3"
 
 # Note: Update these values to match your own Azure VM setup
 EOF
+    fi
     
     print_success "Config file created!"
 }
