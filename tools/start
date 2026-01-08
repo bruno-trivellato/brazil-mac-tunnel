@@ -472,6 +472,48 @@ handle_commands() {
             restart_tunnel
             exit 0
             ;;
+        "--auto-restart"|"--quick-start")
+            # Auto-restart mode: Kill conflicts, restart tunnel, exit
+            if ! check_config; then
+                print_error "Configuration not found."
+                exit 1
+            fi
+            source "$CONFIG_FILE"
+
+            print_header
+            print_step "🚀 Auto-starting Brazil tunnel..."
+
+            # Kill any existing tunnel or conflicting process on port
+            if pgrep -f "ssh.*${LOCAL_PORT}.*${SSH_USER}@${VM_IP}" > /dev/null; then
+                print_step "Stopping existing tunnel..."
+                pkill -f "ssh.*${LOCAL_PORT}.*${SSH_USER}@${VM_IP}" 2>/dev/null || true
+                sleep 1
+            fi
+
+            # Kill any process using the port
+            if lsof -i ":$LOCAL_PORT" > /dev/null 2>&1; then
+                print_step "Killing process on port $LOCAL_PORT..."
+                lsof -ti ":$LOCAL_PORT" | xargs kill -9 2>/dev/null || true
+                sleep 1
+            fi
+
+            # Start tunnel
+            local ssh_key_path="${SSH_KEY/#\~/$HOME}"
+            ssh -i "$ssh_key_path" -D "$LOCAL_PORT" $SSH_OPTIONS -f "$SSH_USER@$VM_IP"
+            sleep 2
+
+            # Verify it started
+            if pgrep -f "ssh.*${LOCAL_PORT}.*${SSH_USER}@${VM_IP}" > /dev/null; then
+                print_success "Brazil tunnel is running! 🇧🇷"
+                echo -e "${BLUE}SOCKS proxy: localhost:${LOCAL_PORT}${NC}"
+                echo -e "${GREEN}You can now use your Brazil connection!${NC}"
+            else
+                print_error "Failed to start tunnel. Run './start' for interactive menu."
+                exit 1
+            fi
+
+            exit 0
+            ;;
         "menu"|"interactive"|"")
             # Default behavior - show interactive menu
             return 0
@@ -479,18 +521,21 @@ handle_commands() {
         "help"|"-h"|"--help")
             print_header
             echo -e "${BLUE}Usage:${NC}"
-            echo -e "  ./start              - Interactive menu (default)"
-            echo -e "  ./start menu         - Interactive menu"
-            echo -e "  ./start stop         - Stop running tunnel"
-            echo -e "  ./start status       - Check tunnel status"
-            echo -e "  ./start restart      - Restart tunnel"
-            echo -e "  ./start help         - Show this help"
+            echo -e "  ./start                   - Interactive menu (default)"
+            echo -e "  ./start --auto-restart    - Quick restart (kills conflicts, starts tunnel)"
+            echo -e "  ./start menu              - Interactive menu"
+            echo -e "  ./start stop              - Stop running tunnel"
+            echo -e "  ./start status            - Check tunnel status"
+            echo -e "  ./start restart           - Restart tunnel (interactive)"
+            echo -e "  ./start help              - Show this help"
             echo -e "\n${BLUE}Interactive menu provides:${NC}"
             echo -e "  • Start/stop/restart tunnel"
             echo -e "  • Test connections"
             echo -e "  • Open setup guides"
             echo -e "  • Debug issues"
             echo -e "  • Edit configuration"
+            echo -e "\n${BLUE}Quick Start Tip:${NC}"
+            echo -e "  The Brazil flag app uses --auto-restart for instant tunnel activation!"
             exit 0
             ;;
         *)

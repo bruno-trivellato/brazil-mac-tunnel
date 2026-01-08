@@ -4,8 +4,12 @@
 
 **No file transfers needed - just install and connect!**
 
+### Recommended Apps (both work great!):
+- **[OpenTunnel](https://play.google.com/store/apps/details?id=com.opentunnel.app&hl=en)** by Rooster Kid - Simple UI, works perfectly ✅ (Verified working!)
+- **SSH Tunnel** by Max Lv - Popular alternative with more features
+
 ### Setup:
-1. **Install**: "SSH Tunnel" app from Google Play Store (by Max Lv - red icon)
+1. **Install**: [OpenTunnel](https://play.google.com/store/apps/details?id=com.opentunnel.app&hl=en) or "SSH Tunnel" from Google Play Store
 2. **Add Connection**:
    - **Name**: `Brazil Tunnel`
    - **Host**: `74.163.64.57`
@@ -41,7 +45,7 @@
 **Requires transferring SSH key from Mac via USB/ADB**
 
 ### Setup:
-1. **Install**: "SSH Tunnel" app from Google Play Store
+1. **Install**: [OpenTunnel](https://play.google.com/store/apps/details?id=com.opentunnel.app&hl=en) or "SSH Tunnel" from Google Play Store
 2. **Transfer SSH key** from Mac:
    ```bash
    # On Mac, connect phone via USB and run:
